@@ -7,3 +7,5 @@
 5. Switch back to Alice, change Bob to Editor; switch to Bob and save an edit. Mention that owners alone can share/revoke.
 6. Explain session demo identity, centralized authorization, sanitized rich text, and persistent SQLite. Show `dotnet test DocSpace.sln` output.
 7. State actual AI usage honestly using `AI_WORKFLOW.md`, then note simulated auth, CDN dependency, no history/real-time collaboration, and planned production improvements.
+
+8. Import a small DOCX, edit/save/reopen it, and download its saved version as PDF.

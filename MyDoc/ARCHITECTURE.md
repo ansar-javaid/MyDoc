@@ -7,3 +7,5 @@ Pages use focused services: `DemoUserService` resolves the session identity from
 The editor loads saved HTML into Quill. It debounces saves and retains unsaved browser content on failure, with an explicit Save action. Save sanitizes HTML and stores title/content/time in UTC. Markdown disables embedded HTML; plain text is HTML encoded. SQLite is chosen for low operational complexity and is appropriate only where a durable disk is available.
 
 Scope cuts: no migrations (first-run `EnsureCreated`), no real auth, concurrency tokens, comments, history, or live collaboration. Next steps would be a vetted sanitizer, production identity, EF migrations, optimistic concurrency, and locally hosted Quill assets.
+
+DOCX import is isolated in `DocxImportService`: it validates the Open Packaging ZIP then converts supported Open XML paragraphs/runs to HTML and passes it through the shared sanitizer. PDF export is an authorized server endpoint using QuestPDF; it never follows embedded file paths, scripts, or remote resources.

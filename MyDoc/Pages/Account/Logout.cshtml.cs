@@ -1,0 +1,1 @@
+using Microsoft.AspNetCore.Identity;using Microsoft.AspNetCore.Mvc;using Microsoft.AspNetCore.Mvc.RazorPages;using MyDoc.Models;namespace MyDoc.Pages.Account;public sealed class LogoutModel(SignInManager<ApplicationUser> signIn):PageModel{public async Task<IActionResult>OnPostAsync(){await signIn.SignOutAsync();return RedirectToPage("/Account/Login");}}

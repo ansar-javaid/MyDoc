@@ -29,6 +29,10 @@ Tests use isolated in-memory SQLite connections, never the application database.
 
 Only UTF-8 `.txt` and `.md` files up to 1 MB are accepted. Quill is loaded from jsDelivr, so editor formatting requires internet access (the rest of the app remains available). SQLite uses `EnsureCreated` for reliable first-run initialization rather than migrations.
 
+## Word import and PDF export
+
+Authenticated users can import `.docx` files up to 5 MB from the dashboard. The server verifies the ZIP signature and expected Word package entry, limits ZIP entry count/uncompressed size, and uses Open XML SDK to preserve ordinary paragraphs, headings, bold, italic, and underline. Complex layouts, images, tables, tracked changes, macros, and external resources are intentionally ignored. Accessible saved documents can be downloaded from `/documents/{id}/pdf`; PDF output uses QuestPDF Community edition, needs no native renderer or external service, and currently renders a safe readable text representation of the stored rich text.
+
 ## Deployment
 
 Publish with `dotnet publish -c Release`. Deploy only to a host with a persistent mounted disk and set `DocSpace__DatabasePath` to a location on that disk. A free host with ephemeral storage is not suitable for durable SQLite. No deployment has been performed because it requires an account and persistent-volume choice.

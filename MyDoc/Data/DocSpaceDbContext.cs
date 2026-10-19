@@ -1,31 +1,6 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MyDoc.Models;
-
 namespace MyDoc.Data;
-
-public sealed class DocSpaceDbContext(DbContextOptions<DocSpaceDbContext> options) : DbContext(options)
-{
-    public DbSet<User> Users => Set<User>();
-    public DbSet<Document> Documents => Set<Document>();
-    public DbSet<DocumentShare> DocumentShares => Set<DocumentShare>();
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<User>().HasIndex(x => x.Email).IsUnique();
-        modelBuilder.Entity<Document>().HasIndex(x => new { x.OwnerId, x.UpdatedAtUtc });
-        modelBuilder.Entity<DocumentShare>().HasIndex(x => new { x.DocumentId, x.UserId }).IsUnique();
-        modelBuilder.Entity<DocumentShare>().HasOne(x => x.Document).WithMany(x => x.Shares).HasForeignKey(x => x.DocumentId).OnDelete(DeleteBehavior.Cascade);
-        modelBuilder.Entity<DocumentShare>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
-    }
-}
-
-public static class DatabaseSeeder
-{
-    public static async Task SeedAsync(DocSpaceDbContext db)
-    {
-        await db.Database.EnsureCreatedAsync();
-        if (await db.Users.AnyAsync()) return;
-        db.Users.AddRange(new User { Name = "Alice", Email = "alice@docspace.local" }, new User { Name = "Bob", Email = "bob@docspace.local" });
-        await db.SaveChangesAsync();
-    }
-}
+public sealed class DocSpaceDbContext(DbContextOptions<DocSpaceDbContext> options):IdentityDbContext<ApplicationUser,Microsoft.AspNetCore.Identity.IdentityRole<int>,int>(options){public DbSet<Document> Documents=>Set<Document>();public DbSet<DocumentShare> DocumentShares=>Set<DocumentShare>();public DbSet<DocumentVersion> DocumentVersions=>Set<DocumentVersion>();protected override void OnModelCreating(ModelBuilder b){base.OnModelCreating(b);b.Entity<ApplicationUser>(x=>{x.ToTable("Users");x.Property(u=>u.FullName).HasColumnName("Name").HasMaxLength(100);});b.Entity<Document>().HasIndex(x=>new{x.OwnerId,x.UpdatedAtUtc});b.Entity<DocumentShare>().HasIndex(x=>new{x.DocumentId,x.UserId}).IsUnique();b.Entity<DocumentShare>().HasOne(x=>x.Document).WithMany(x=>x.Shares).HasForeignKey(x=>x.DocumentId).OnDelete(DeleteBehavior.Cascade);b.Entity<DocumentShare>().HasOne(x=>x.User).WithMany().HasForeignKey(x=>x.UserId).OnDelete(DeleteBehavior.Restrict);b.Entity<DocumentVersion>().HasIndex(x=>new{x.DocumentId,x.VersionNumber}).IsUnique();b.Entity<DocumentVersion>().HasOne(x=>x.Document).WithMany(x=>x.Versions).HasForeignKey(x=>x.DocumentId).OnDelete(DeleteBehavior.Cascade);b.Entity<DocumentVersion>().HasOne(x=>x.CreatedByUser).WithMany().HasForeignKey(x=>x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);}}
+public static class DatabaseSeeder{public static async Task SeedAsync(DocSpaceDbContext db,IServiceProvider services){var users=services.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<ApplicationUser>>();foreach(var(name,email,password)in new[]{("Alice","alice@docspace.local","DocSpace!2026"),("Bob","bob@docspace.local","DocSpace!2026")}){var user=await users.FindByEmailAsync(email);if(user is null){user=new ApplicationUser{FullName=name,UserName=email,Email=email,EmailConfirmed=true};await users.CreateAsync(user,password);}else{user.FullName=string.IsNullOrWhiteSpace(user.FullName)?name:user.FullName;user.UserName??=email;user.Email??=email;user.NormalizedEmail??=email.ToUpperInvariant();user.NormalizedUserName??=email.ToUpperInvariant();if(string.IsNullOrEmpty(user.PasswordHash))await users.AddPasswordAsync(user,password);else await users.UpdateAsync(user);}}}}
