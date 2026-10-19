@@ -1,23 +1,9 @@
-# AI workflow (editable template)
+# AI-assisted workflow
 
-## AI tools used
+The candidate used GPT to analyze the assessment, sequence the core product work, and refine implementation prompts. Those prompts were passed to Codex, which inspected and modified this repository incrementally.
 
-Describe the tools you used and your role in reviewing their output.
+Codex accelerated project inspection, Razor Pages/EF Core implementation, troubleshooting build errors, and drafting documentation. The candidate directed the product scope and requested successive improvements: core document workflows, persistence/import, Identity and sharing, then optional DOCX/PDF/version-history work.
 
-## Where AI accelerated development
+Generated code and documentation require inspection. Verified evidence available in this repository session is a successful solution build and three passing authorization tests. Registration, sharing, DOCX conversion, browser interaction, PDF inspection, deployment, and video recording should be treated as outstanding manual verification unless separately recorded.
 
-List implementation, troubleshooting, documentation, or test-design work AI helped accelerate.
-
-## Suggestions modified or rejected
-
-Record generated ideas you changed, rejected, or independently verified.
-
-## Verification
-
-Record commands, tests, and manual browser checks actually performed.
-
-## Remaining risks
-
-Note limitations, assumptions, and work that still needs review.
-
-This intentionally does not claim any specific interaction or outcome; update it with your own accurate account.
+AI output was used as implementation assistance, not as proof that a feature works. Final submission should include the candidate's own review and real-browser checks.

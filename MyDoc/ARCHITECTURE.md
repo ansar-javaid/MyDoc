@@ -1,11 +1,7 @@
 # Architecture
 
-DocSpace is one Razor Pages application. `DocSpaceDbContext` owns SQLite entities: `User`, `Document`, and `DocumentShare`; unique email and `(DocumentId, UserId)` indexes protect the essential constraints. Startup resolves an absolute database path, calls `EnsureCreated`, and seeds Alice and Bob once.
+`DocSpaceDbContext` combines Identity's integer-key user store with `Document`, `DocumentShare`, and `DocumentVersion`. Existing document ownership remains keyed to the same user IDs. Razor Page handlers resolve the authenticated server principal through `CurrentUserService`; `DocumentAuthorizationService` returns Owner, Editor, Viewer, or None and handlers enforce it rather than trusting browser-supplied owners.
 
-Pages use focused services: `DemoUserService` resolves the session identity from the database, `DocumentAuthorizationService` calculates Owner/Editor/Viewer/None, `DocumentImportService` converts a constrained upload, and `HtmlSafetyService` normalizes stored editor HTML. Every document handler checks access server-side; only owners may share or revoke.
+`DocumentImportService` handles TXT/Markdown. `DocxImportService` validates a constrained Open Packaging ZIP, reads it using Open XML SDK, converts a small formatting subset to HTML, then passes it through `HtmlSafetyService` (HtmlSanitizer allowlist). `PdfExportService` sanitizes saved content and produces a QuestPDF document; the PDF route checks access first.
 
-The editor loads saved HTML into Quill. It debounces saves and retains unsaved browser content on failure, with an explicit Save action. Save sanitizes HTML and stores title/content/time in UTC. Markdown disables embedded HTML; plain text is HTML encoded. SQLite is chosen for low operational complexity and is appropriate only where a durable disk is available.
-
-Scope cuts: no migrations (first-run `EnsureCreated`), no real auth, concurrency tokens, comments, history, or live collaboration. Next steps would be a vetted sanitizer, production identity, EF migrations, optimistic concurrency, and locally hosted Quill assets.
-
-DOCX import is isolated in `DocxImportService`: it validates the Open Packaging ZIP then converts supported Open XML paragraphs/runs to HTML and passes it through the shared sanitizer. PDF export is an authorized server endpoint using QuestPDF; it never follows embedded file paths, scripts, or remote resources.
+Saves sanitize content and create historical snapshots when a document meaningfully changes. The SQLite database path is configurable through `DocSpace__DatabasePath`; startup's `DatabaseSchemaService` preserves the original table and adds required Identity/version columns and tables in place. This is a pragmatic legacy-upgrade bridge, not a replacement for reviewed EF migrations.

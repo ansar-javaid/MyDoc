@@ -1,42 +1,28 @@
 # DocSpace
 
-DocSpace is a lightweight document editor assessment built as one ASP.NET Core Razor Pages application. It supports persistent rich-text documents, safe TXT/Markdown import, sharing, and server-enforced viewer/editor access.
+DocSpace is a .NET 8 Razor Pages document workspace with SQLite persistence, ASP.NET Core Identity, Quill editing, sharing, imports, version snapshots, and an authorized PDF endpoint.
 
-## Stack and features
-
-- .NET 8 Razor Pages, Bootstrap, Quill 2 (official CDN assets), EF Core 8 and SQLite
-- Create, rename (in editor), save/reopen, delete, format, import, share/revoke, and demo-user switching
-- Quill HTML is sanitized before storage; Markdown has raw HTML disabled before conversion
-
-## Run locally
+## Setup
 
 ```powershell
 dotnet restore DocSpace.sln
+dotnet build DocSpace.sln
 dotnet run --project MyDoc.csproj
-```
-
-Open the HTTPS URL printed by ASP.NET Core. On first launch the app creates and seeds `data/docspace.db` with Alice (`alice@docspace.local`) and Bob (`bob@docspace.local`). Select either user in the header; the selection is validated and stored in a server-managed session. To use another absolute database file, set `DocSpace__DatabasePath`, for example `$env:DocSpace__DatabasePath='C:\data\docspace.db'`.
-
-## Test
-
-```powershell
 dotnet test DocSpace.sln
 ```
 
-Tests use isolated in-memory SQLite connections, never the application database.
+The default database is `data/docspace.db`; set `DocSpace__DatabasePath` to an absolute durable path when deploying. Startup applies the repository's in-place schema preparation for the pre-existing SQLite layout and Identity tables. Back up the database before upgrading an existing installation.
 
-## Import and configuration
+## Accounts and sharing
 
-Only UTF-8 `.txt` and `.md` files up to 1 MB are accepted. Quill is loaded from jsDelivr, so editor formatting requires internet access (the rest of the app remains available). SQLite uses `EnsureCreated` for reliable first-run initialization rather than migrations.
+Register at `/Account/Register`, then log in at `/Account/Login`. To test sharing, register two accounts, create a document as the first, share it by the second account's exact registered email, then log in as that account. Viewers can read; editors can save; only owners manage shares.
 
-## Word import and PDF export
+## Imports, exports, and limits
 
-Authenticated users can import `.docx` files up to 5 MB from the dashboard. The server verifies the ZIP signature and expected Word package entry, limits ZIP entry count/uncompressed size, and uses Open XML SDK to preserve ordinary paragraphs, headings, bold, italic, and underline. Complex layouts, images, tables, tracked changes, macros, and external resources are intentionally ignored. Accessible saved documents can be downloaded from `/documents/{id}/pdf`; PDF output uses QuestPDF Community edition, needs no native renderer or external service, and currently renders a safe readable text representation of the stored rich text.
+TXT and Markdown import is implemented in `DocumentImportService`; DOCX import accepts `.docx` packages up to 5 MB and validates ZIP signature, package structure, entry count, and expanded size. The DOCX converter supports ordinary text, headings, bold, italic, and underline. It deliberately ignores macros, images, tables, tracked changes, external content, and advanced layout. All imported/editor HTML is sanitized on the server.
 
-## Deployment
+The authorized endpoint `/documents/{id}/pdf` generates a PDF for an owner or collaborator. It uses QuestPDF Community edition without a native renderer or external service. The current implementation exports a safe text rendering rather than full HTML fidelity.
 
-Publish with `dotnet publish -c Release`. Deploy only to a host with a persistent mounted disk and set `DocSpace__DatabasePath` to a location on that disk. A free host with ephemeral storage is not suitable for durable SQLite. No deployment has been performed because it requires an account and persistent-volume choice.
+## Known limitations
 
-## Security and limitations
-
-Demo identity is deliberately not production authentication; it is a server-side session selected from seeded users. Anti-forgery protects posts and authorization is checked in handlers. The compact sanitizer is deliberately restrictive but is not a substitute for a mature production HTML sanitization policy. No real-time collaboration, comments, version history, or account management is included.
+Quill loads from jsDelivr. There are no EF migration files; the legacy database is updated by a guarded startup schema bridge. DOCX/PDF workflows require additional automated and browser verification before a production claim. No deployment URL or walkthrough video has been verified.
