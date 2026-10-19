@@ -1,0 +1,3 @@
+Public walkthrough URL: PENDING
+
+Replace PENDING with the public 3–5 minute walkthrough URL after recording. Cover create/edit/format/save/reopen, TXT or Markdown import, sharing, viewer/editor and denied access behavior, tests, architecture, actual AI workflow, limitations, and next steps.
